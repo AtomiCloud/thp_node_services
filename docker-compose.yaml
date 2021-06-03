@@ -1,0 +1,61 @@
+x-envs: &envs
+  ENV: prod
+  CONFIG_PATH: config.yaml
+
+version: '2.4'
+
+services:
+
+  time-v1:
+    build:
+      context: time/v1
+    ports:
+      - 10301:3000
+    tty: true
+    environment:
+      <<: *envs
+
+  time-v2:
+    build:
+      context: time/v2
+    ports:
+      - 10302:3000
+    tty: true
+    environment:
+      <<: *envs
+
+  random-v1:
+    build:
+      context: random/v1
+    ports:
+      - 10303:3000
+    tty: true
+    environment:
+      <<: *envs
+
+  random-v2:
+    build:
+      context: random/v2
+    ports:
+      - 10304:3000
+    tty: true
+    environment:
+      <<: *envs
+
+  write-v1:
+    build:
+      context: write/v1
+    ports:
+      - 10305:3000
+    tty: true
+    environment:
+      <<: *envs
+
+  write-v2:
+    build:
+      context: write/v2
+    ports:
+      - 10306:3000
+    tty: true
+    environment:
+      <<: *envs

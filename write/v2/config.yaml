@@ -1,0 +1,2 @@
+logs: debug # can be debug, info, error
+secret_key_path: secret_file.txt
