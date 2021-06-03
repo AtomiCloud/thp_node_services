@@ -1,0 +1,5 @@
+logs: debug # can be debug, info, error
+secret_key_path: secret_file.txt
+random_range:
+  start: -1000000000
+  end: 1000000000
