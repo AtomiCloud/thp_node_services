@@ -1,16 +1,14 @@
-import {ILogger} from "./logger";
 import {Express} from "express";
 import {StaticConfig} from "./static_config";
 import {DynamicConfig} from "./dynamic_config";
 
 
-function StatusController(app: Express, logger: ILogger, startTime: number,
+function StatusController(app: Express, startTime: number,
                           {version, service, commitSha, env, configPath}: StaticConfig,
-                          {cfg, logLevel, secret}: DynamicConfig) {
-    
-    
-    logger.trace('registering GET `/` endpoint');
+                          dyn: DynamicConfig) {
+    dyn.logger.trace('registering GET `/` endpoint');
     app.get("/", (_, res) => {
+        const logger = dyn.logger;
         logger.info('obtaining status status');
         
         logger.trace('computing time elapsed');
@@ -26,18 +24,20 @@ function StatusController(app: Express, logger: ILogger, startTime: number,
             env,
             service,
             configPath,
-            logLevel,
+            logLevel: dyn.logLevel,
+            format: dyn.cfg.format,
         }
         
         if (env.toLowerCase().substring(0, 3) == "dev") {
             logger.trace('injecting secret to status since its in development environment');
-            status['secret'] = secret;
-            status['secretPath'] = cfg.secret_key_path
+            status['secret'] = dyn.secret;
+            status['secretPath'] = dyn.cfg.secret_key_path
+            logger.trace('secrets injected');
         }
         res.send(JSON.stringify(status))
         
     })
-    logger.trace('GET `/` endpoint registered');
+    dyn.logger.trace('GET `/` endpoint registered');
     
 }
 

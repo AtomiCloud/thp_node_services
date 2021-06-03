@@ -1,44 +1,70 @@
-import {ILogger} from "./logger";
 import express, {Express} from 'express';
 import {DynamicConfig, LoadDynamicConfiguration} from "./dynamic_config";
 import {staticConfig, StaticConfig} from "./static_config";
 import {StatusController} from "./status";
 import {StartServices} from "./controller";
+import * as fs from "fs";
 
 
-function main(logger: ILogger, stc: StaticConfig, dyn: DynamicConfig): void {
+function main(stc: StaticConfig, dyn: DynamicConfig): void {
     
-    logger.trace('initializing express application');
+    dyn.logger.trace('initializing express application');
     const app: Express = express()
     const port = 3000;
-    logger.trace('express application initialized');
+    dyn.logger.trace('express application initialized');
     
-    logger.trace('computing starting timestamp');
+    dyn.logger.trace('computing starting timestamp');
     const startTime = Date.now();
-    logger.trace('starting timestamp registered:', startTime);
+    dyn.logger.trace('starting timestamp registered:', startTime);
     
     // Status
-    StatusController(app, logger, startTime, stc, dyn);
+    StatusController(app, startTime, stc, dyn);
     // Actual Controller
-    StartServices(app, logger, startTime, stc, dyn);
+    StartServices(app, startTime, stc, dyn);
     
     app.listen(port, () => {
-        logger.info(`listening at http://0.0.0.0:${port}`)
+        dyn.logger.info(`listening at http://0.0.0.0:${port}`)
     })
     
     
     process.on('SIGTERM', () => {
-        logger.info('SIGTERM terminating...')
+        dyn.logger.info('SIGTERM terminating...')
         process.exit(0);
     });
     
     process.on('SIGINT', () => {
-        logger.info('SIGINT terminating...')
+        dyn.logger.info('SIGINT terminating...')
         process.exit(0);
     });
     
 }
 
-const dynConfig = LoadDynamicConfiguration(staticConfig);
+let dynConfig = LoadDynamicConfiguration(staticConfig);
 
-main(dynConfig.logger, staticConfig, dynConfig);
+
+function ReloadConfiguration(): string {
+    dynConfig.logger.info('configuration reloaded');
+    const newDyn = LoadDynamicConfiguration(staticConfig);
+    dynConfig.logger = newDyn.logger;
+    dynConfig.cfg = newDyn.cfg;
+    dynConfig.logLevel = newDyn.logLevel;
+    dynConfig.secret = newDyn.secret;
+    return newDyn.cfg.secret_key_path
+}
+
+
+let watcher = fs.watch(dynConfig.cfg.secret_key_path, () => {
+    ReloadConfiguration();
+})
+
+fs.watch(staticConfig.configPath, () => {
+    
+    const secretPath = ReloadConfiguration();
+    watcher.close();
+    watcher = fs.watch(secretPath, () => {
+        ReloadConfiguration();
+    });
+    
+})
+
+main(staticConfig, dynConfig);

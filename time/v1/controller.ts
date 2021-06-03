@@ -2,18 +2,18 @@ import moment from 'moment';
 import 'moment-timezone';
 import {DynamicConfig} from "./dynamic_config";
 import {StaticConfig} from "./static_config";
-import {ILogger} from "./logger";
 import {Express} from "express";
 
 
-function StartServices(app: Express, logger: ILogger, _: number,
+function StartServices(app: Express, _: number,
                        __: StaticConfig,
-                       {cfg}: DynamicConfig) {
+                       dyn: DynamicConfig) {
     
-    logger.trace('GET `/:timezone` endpoint registered');
+    dyn.logger.trace('GET `/:timezone` endpoint registered');
     app.get('/:timezone', (req, res) => {
+        const logger = dyn.logger;
         logger.info('hit `/:timezone`');
-        const format = cfg.format;
+        const format = dyn.cfg.format;
         const timezone = req.params.timezone;
         
         logger.trace('obtained timezone', timezone);
@@ -27,7 +27,7 @@ function StartServices(app: Express, logger: ILogger, _: number,
             now: nowFormatted,
         });
     })
-    logger.trace('GET `/:timezone` endpoint registered');
+    dyn.logger.trace('GET `/:timezone` endpoint registered');
 }
 
 export {StartServices}
