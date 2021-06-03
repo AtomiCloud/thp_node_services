@@ -1,0 +1,3 @@
+logs: debug # can be debug, info, error
+secret_key_path: secret_file.txt
+format: "ddd, MMM Do YY, h:mm:ssa zz"
